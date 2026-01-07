@@ -4,6 +4,10 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   base: './',
+  define: {
+    // Permite que o SDK do Gemini use process.env.API_KEY no navegador
+    'process.env.API_KEY': JSON.stringify(process.env.API_KEY),
+  },
   build: {
     outDir: 'dist',
     emptyOutDir: true,
