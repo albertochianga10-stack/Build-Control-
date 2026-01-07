@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { UserProfile } from '../types';
 
@@ -12,8 +11,9 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({ children, currentView, setView, profile }) => {
   const navItems = [
     { id: 'dashboard', label: 'Início', icon: '🏠' },
-    { id: 'accounts', label: 'Contas', icon: '🏦' },
+    { id: 'accounts', label: 'Bancos', icon: '🏦' },
     { id: 'goals', label: 'Metas', icon: '🎯' },
+    { id: 'investments', label: 'Investir', icon: '💰' },
     { id: 'add', label: 'Lançar', icon: '➕' },
   ];
 
@@ -45,7 +45,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, setView, 
 
         <div className="mt-auto pt-6 border-t border-slate-800">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-full bg-yellow-500 flex items-center justify-center font-bold text-slate-900">
+            <div className="w-10 h-10 rounded-full bg-yellow-500 flex items-center justify-center font-bold text-slate-900 shadow-sm">
               {profile.name.charAt(0)}
             </div>
             <div>
@@ -59,7 +59,10 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, setView, 
       {/* Mobile Header */}
       <header className="md:hidden bg-white border-b px-4 py-4 flex justify-between items-center sticky top-0 z-40">
         <h1 className="text-xl font-bold text-slate-900">Build Control</h1>
-        <div className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-xs font-bold">
+        <div 
+          onClick={() => setView('dashboard')}
+          className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-xs font-bold shadow-sm"
+        >
           {profile.name.charAt(0)}
         </div>
       </header>
@@ -70,17 +73,19 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, setView, 
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center h-16 px-2 z-50">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center h-16 px-1 z-50">
         {navItems.map((item) => (
           <button
             key={item.id}
             onClick={() => setView(item.id)}
-            className={`flex flex-col items-center justify-center space-y-1 ${
-              currentView === item.id ? 'text-yellow-600' : 'text-slate-400'
+            className={`flex flex-col items-center justify-center min-w-[64px] space-y-1 transition-colors ${
+              currentView === item.id || (currentView === 'addGoal' && item.id === 'goals') || (currentView === 'history' && item.id === 'dashboard')
+                ? 'text-yellow-600' 
+                : 'text-slate-400'
             }`}
           >
             <span className="text-xl">{item.icon}</span>
-            <span className="text-[10px] font-medium uppercase tracking-wider">{item.label}</span>
+            <span className="text-[10px] font-bold uppercase tracking-tighter">{item.label}</span>
           </button>
         ))}
       </nav>

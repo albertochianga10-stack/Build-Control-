@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Layout } from './components/Layout';
 import { Dashboard } from './components/Dashboard';
@@ -7,10 +6,11 @@ import { TransactionForm } from './components/TransactionForm';
 import { BankAccounts } from './components/BankAccounts';
 import { GoalForm } from './components/GoalForm';
 import { TransactionHistory } from './components/TransactionHistory';
+import { Investments } from './components/Investments';
 import { Transaction, TransactionType, UserProfile, SavingGoal, BankAccount } from './types';
 
 const App: React.FC = () => {
-  const [view, setView] = useState<'dashboard' | 'goals' | 'add' | 'accounts' | 'addGoal' | 'history'>('dashboard');
+  const [view, setView] = useState<'dashboard' | 'goals' | 'add' | 'accounts' | 'addGoal' | 'history' | 'investments'>('dashboard');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [goals, setGoals] = useState<SavingGoal[]>([]);
@@ -20,13 +20,14 @@ const App: React.FC = () => {
     monthlyGoal: 50000
   });
 
+  // Load from local storage on mount
   useEffect(() => {
     const savedT = localStorage.getItem('kwanza_transactions');
     if (savedT) setTransactions(JSON.parse(savedT));
     else {
       setTransactions([
         { id: '1', description: 'Venda de produtos', amount: 80000, type: TransactionType.INCOME, category: 'Vendas', date: new Date().toISOString() },
-        { id: '2', description: 'Almoço', amount: 5500, type: TransactionType.EXPENSE, category: 'Alimentação', date: new Date().toISOString() },
+        { id: '2', description: 'Almoço no Candando', amount: 5500, type: TransactionType.EXPENSE, category: 'Alimentação', date: new Date().toISOString() },
       ]);
     }
 
@@ -34,7 +35,7 @@ const App: React.FC = () => {
     if (savedA) setBankAccounts(JSON.parse(savedA));
     else {
       setBankAccounts([
-        { id: 'bai', bankName: 'BAI', balance: 150000, updatedAt: new Date().toISOString() },
+        { id: 'bai', bankName: 'BAI', balance: 125000, updatedAt: new Date().toISOString() },
         { id: 'bci', bankName: 'BCI', balance: 45000, updatedAt: new Date().toISOString() },
         { id: 'bic', bankName: 'BIC', balance: 12000, updatedAt: new Date().toISOString() },
       ]);
@@ -49,6 +50,7 @@ const App: React.FC = () => {
     }
   }, []);
 
+  // Persistence
   useEffect(() => { localStorage.setItem('kwanza_transactions', JSON.stringify(transactions)); }, [transactions]);
   useEffect(() => { localStorage.setItem('kwanza_accounts', JSON.stringify(bankAccounts)); }, [bankAccounts]);
   useEffect(() => { localStorage.setItem('kwanza_goals', JSON.stringify(goals)); }, [goals]);
@@ -69,9 +71,8 @@ const App: React.FC = () => {
     setGoals(prev => prev.map(g => 
       g.id === id ? { ...g, currentAmount: g.currentAmount + amount } : g
     ));
-    // Also add an expense transaction of type SAVING
     addTransaction({
-      description: `Reforço: ${goals.find(g => g.id === id)?.title}`,
+      description: `Reforço para: ${goals.find(g => g.id === id)?.title}`,
       amount: amount,
       type: TransactionType.SAVING,
       category: 'Meta Específica',
@@ -115,6 +116,9 @@ const App: React.FC = () => {
         )}
         {view === 'accounts' && (
           <BankAccounts accounts={bankAccounts} onUpdate={updateBankAccount} />
+        )}
+        {view === 'investments' && (
+          <Investments />
         )}
         {view === 'add' && (
           <TransactionForm onSubmit={addTransaction} onCancel={() => setView('dashboard')} />
