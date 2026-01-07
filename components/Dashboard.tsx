@@ -2,16 +2,16 @@
 import React, { useState, useEffect } from 'react';
 import { Transaction, TransactionType, UserProfile, BankAccount } from '../types';
 import { getFinancialAdvice } from '../services/geminiService';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 interface DashboardProps {
   transactions: Transaction[];
   balance: number;
   bankAccounts: BankAccount[];
   profile: UserProfile;
+  onSeeAll: () => void;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ transactions, balance, bankAccounts, profile }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ transactions, balance, bankAccounts, profile, onSeeAll }) => {
   const [aiData, setAiData] = useState<{tips: string[], alert: string, projection: string} | null>(null);
   const [loadingAI, setLoadingAI] = useState(false);
 
@@ -24,12 +24,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, balance, ban
     };
     fetchAI();
   }, [transactions.length, profile, balance]);
-
-  const chartData = [
-    { name: 'Receitas', value: transactions.filter(t => t.type === TransactionType.INCOME).reduce((a, b) => a + b.amount, 0) },
-    { name: 'Despesas', value: transactions.filter(t => t.type === TransactionType.EXPENSE).reduce((a, b) => a + b.amount, 0) },
-    { name: 'Poupanças', value: transactions.filter(t => t.type === TransactionType.SAVING).reduce((a, b) => a + b.amount, 0) },
-  ];
 
   const formatKz = (val: number) => {
     return new Intl.NumberFormat('pt-AO', { style: 'currency', currency: 'AOA' }).format(val).replace('AOA', 'Kz');
@@ -115,28 +109,32 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, balance, ban
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="p-6 border-b border-slate-50 flex justify-between items-center">
           <h3 className="text-lg font-bold text-slate-800">Últimos Movimentos</h3>
-          <button className="text-sm text-yellow-600 font-semibold hover:underline">Ver tudo</button>
+          <button onClick={onSeeAll} className="text-sm text-yellow-600 font-bold hover:underline">Ver tudo</button>
         </div>
         <div className="divide-y divide-slate-50">
-          {transactions.slice(0, 5).map((t) => (
-            <div key={t.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
-              <div className="flex items-center space-x-4">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold ${
-                  t.type === TransactionType.INCOME ? 'bg-green-100 text-green-600' : 
-                  t.type === TransactionType.EXPENSE ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'
-                }`}>
-                  {t.type === TransactionType.INCOME ? '+' : t.type === TransactionType.EXPENSE ? '-' : 'P'}
+          {transactions.length === 0 ? (
+            <p className="p-8 text-center text-slate-400">Nenhum movimento recente.</p>
+          ) : (
+            transactions.slice(0, 5).map((t) => (
+              <div key={t.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                <div className="flex items-center space-x-4">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold ${
+                    t.type === TransactionType.INCOME ? 'bg-green-100 text-green-600' : 
+                    t.type === TransactionType.EXPENSE ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'
+                  }`}>
+                    {t.type === TransactionType.INCOME ? '+' : t.type === TransactionType.EXPENSE ? '-' : '⚓'}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-800">{t.description}</p>
+                    <p className="text-xs text-slate-400">{t.category} • {new Date(t.date).toLocaleDateString()}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-semibold text-slate-800">{t.description}</p>
-                  <p className="text-xs text-slate-400">{t.category} • {new Date(t.date).toLocaleDateString()}</p>
+                <div className={`font-bold ${t.type === TransactionType.INCOME ? 'text-green-600' : 'text-slate-800'}`}>
+                  {t.type === TransactionType.EXPENSE || t.type === TransactionType.SAVING ? '- ' : '+ '}{formatKz(t.amount)}
                 </div>
               </div>
-              <div className={`font-bold ${t.type === TransactionType.INCOME ? 'text-green-600' : 'text-slate-800'}`}>
-                {t.type === TransactionType.EXPENSE && '- '}{formatKz(t.amount)}
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>
